@@ -10,8 +10,7 @@ import scrapy
 
 class wantedPerson(scrapy.Item):
     photolink = scrapy.Field()
-    name = scrapy.Field()
-    charges = scrapy.Field()
+    maindetails = scrapy.Field()
     particulars = scrapy.Field()
     casebrief = scrapy.Field()
     

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
+import re
 
 from hkwanted.items import wantedPerson
 
@@ -19,15 +20,15 @@ class HkwantedspiderSpider(scrapy.Spider):
         person = wantedPerson()
         person['photolink'] = response.urljoin(response.css("img:nth-child(4)::attr(src)").extract_first())
 
-        namecharges = response.css("table")[1].css("td::text").extract()
-        person['name'] = namecharges[0].split(" : ")[1]
-        charges = namecharges[1:]; charges[0] = charges[0].split(" : ")[1]; charges = map(lambda x: x.strip(",\t\r\n\s"), charges)
-        person['charges'] = charges
-
+        maindetails = response.css("table")[1].css("td::text").extract()
+        maindetails = map(lambda x: x.replace(";",""), re.findall(r"(?=;([^;]*?:.*?);[^;:]*:)", ";"+";".join(maindetails)+";a:a"))
+        maindetails = map(lambda x: x.replace("\t", " ").split(":"), maindetails)
+        person['maindetails'] = {d[0].strip():d[1].strip().title() for d in maindetails}
+        
         badstuff = response.css(".tb_line").css("td::text").extract()
         person['casebrief'] = badstuff[-1]
         particulars = map(lambda x: x.replace("\t",""), badstuff[:-1])
-        particulars = map(lambda x: x.replace(";",""), re.findall(r"(?=;([^;]*?:.*?);[^;:]*:)", ";"+";".join(badstuff[:-1])))
+        particulars = map(lambda x: x.replace(";",""), re.findall(r"(?=;([^;]*?:.*?);[^;:]*:)", ";"+";".join(particulars)+";a:a"))
         particulars = map(lambda x: x.split(":"), particulars)
         person['particulars'] = {d[0].strip():d[1].strip() for d in particulars}
 
